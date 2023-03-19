@@ -30,6 +30,8 @@ from os.path import exists, join
 import sys
 ENV_USER = os.getenv('USER')
 ENV_HOME = os.getenv('HOME')
+ENV_SIM = os.getenv('JACKAL_SIM_ROOT')
+
 # ENV_USER = 'asrl'
 # ENV_HOME = '/home/asrl'
 # sys.path.insert(0, join(ENV_HOME, "eloquent_ws/src/deep_sogm/deep_sogm"))
@@ -39,7 +41,7 @@ ENV_HOME = os.getenv('HOME')
 # sys.path.insert(0, join(ENV_HOME, "eloquent_ws/src/deep_sogm/deep_sogm/cpp_wrappers"))
 
 ROBOT_ROOT = '/home/asrl/eloquent_ws/src/deep_sogm/deep_sogm'
-SIMU_ROOT = '/home/hth/Deep-Collison-Checker/Myhal_Simulator/onboard_deep_sogm/src/deep_sogm/deep_sogm'
+SIMU_ROOT = ENV_SIM+'/onboard_deep_sogm/src/deep_sogm/deep_sogm'
 for ROOT_DIR in [ROBOT_ROOT, SIMU_ROOT]:
     sys.path.insert(0, ROOT_DIR)
     sys.path.insert(0, join(ROOT_DIR, "utils"))

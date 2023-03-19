@@ -22,8 +22,8 @@ nohup=true
 # Old model path (dl=0.06 Sim only)
 # trained_session="Log_2021-05-Bouncers"
 # trained_session="Log_2021-05-Wanderers"
-trained_session="Log_2021-05-FlowFollowers"
-chkp_name="chkp_0300.tar"
+trained_session="Log_2022-06-22_16-29-03_A+H+Sim"
+chkp_name="chkp_0240.tar"
 
 # # Hybrid network (dl=0.12  ---  Training: real60% sim40%  ---  Time: 4s/40)
 # log_name="Log_2022-03-01_16-47-49"
@@ -32,7 +32,7 @@ chkp_name="chkp_0300.tar"
 # Parameters
 nav_without_sogm=false
 use_sim_time=true
-model_path="$HOME/Deep-Collison-Checker/SOGM-3D-2D-Net/results/$trained_session/checkpoints/$chkp_name"
+model_path="$PWD/../../SOGM-3D-2D-Net/results/$trained_session/checkpoints/$chkp_name"
 
 # Launch command
 sogm_command="ros2 launch deep_sogm sogm_launch.py"
