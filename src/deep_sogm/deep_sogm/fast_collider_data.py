@@ -465,14 +465,14 @@ class OnlineDataset:
 
         # Load neighb_limits dictionary
         if self.simu:
-            neighb_lim_file = join('/home/hth/Deep-Collison-Checker/Data/KPConv_data/neighbors_limits.pkl')
+            neighb_lim_file = join(ENV_SIM, '../Data/KPConv_data/neighbors_limits.pkl')
         else:
-            neighb_lim_file = join(ENV_HOME, 'Data/MyhalSim/neighbors_limits.pkl')
+            neighb_lim_file = join(ENV_SIM, '../Data/MyhalSim/neighbors_limits.pkl')
         if exists(neighb_lim_file):
             with open(neighb_lim_file, 'rb') as file:
                 neighb_lim_dict = pickle.load(file)
         else:
-            raise ValueError('No neighbors limit file found')
+            raise ValueError('No neighbors limit file found at ' + neighb_lim_file)
 
         # Check if the limit associated with current parameters exists (for each layer)
         neighb_limits = []
