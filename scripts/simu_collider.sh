@@ -22,7 +22,7 @@ nohup=true
 # Old model path (dl=0.06 Sim only)
 # trained_session="Log_2021-05-Bouncers"
 # trained_session="Log_2021-05-Wanderers"
-trained_session="Log_2022-06-22_16-29-03_A+H+Sim"
+trained_session="Log_2022-06-22_16-29-03_A+H+Simu"
 chkp_name="chkp_0240.tar"
 
 # # Hybrid network (dl=0.12  ---  Training: real60% sim40%  ---  Time: 4s/40)
