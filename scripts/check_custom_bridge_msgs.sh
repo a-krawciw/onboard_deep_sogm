@@ -24,4 +24,7 @@ echo ""
 echo "Bridged Obstacle?"
 ros2 run ros1_bridge dynamic_bridge --print-pairs | grep "Obstacle"
 
+echo "Bridged Costmap?"
+ros2 run ros1_bridge dynamic_bridge --print-pairs | grep "Occupancy"
+
 echo ""
