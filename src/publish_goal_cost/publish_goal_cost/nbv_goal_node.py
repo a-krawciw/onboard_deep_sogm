@@ -41,6 +41,8 @@ class NBVNode(Node):
 
     def store_robot_pose(self, msg: VoxGrid):
         self.odom_loc.position = msg.origin
+        
+        #In the SOGM z is time
         self.odom_loc.position.z = 0.0
         self.odom_loc.orientation.w = np.cos(msg.theta/2)
         self.odom_loc.orientation.z = np.sin(msg.theta/2)
@@ -55,8 +57,8 @@ class NBVNode(Node):
         outgoing_msg.info = self.base_meta_data
         outgoing_msg.info.map_load_time = self.get_clock().now().to_msg()
         outgoing_msg.info.origin = self.odom_loc
-        cost_map = np.full((outgoing_msg.info.width, outgoing_msg.info.height), 30, dtype=int)
-        cost_map[0, outgoing_msg.info.height // 4] = 0
+        cost_map = np.full((outgoing_msg.info.width, outgoing_msg.info.height), 60, dtype=int)
+        cost_map[outgoing_msg.info.height//2:, outgoing_msg.info.height//4:3*outgoing_msg.info.height//4] = 0
 
         outgoing_msg.data = [int(a) for a in cost_map.ravel()]
 
