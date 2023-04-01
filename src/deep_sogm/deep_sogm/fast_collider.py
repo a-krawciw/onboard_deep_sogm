@@ -742,7 +742,7 @@ class OnlineCollider(Node):
                         dynamic_data[erode_mask] = 0
                     visu_SRM = np.maximum(visu_SRM, dynamic_data)
 
-                visu_SRM *= (1 / np.max(visu_SRM) + 1e-6)
+                visu_SRM *= 1 / (np.max(visu_SRM) + 1e-6)
                 visu_SRM *= 126
                 visu_SRM = np.maximum(0, np.minimum(126, visu_SRM.astype(np.int8)))
                 mask = visu_SRM > 0
