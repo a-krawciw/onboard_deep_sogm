@@ -47,7 +47,7 @@ echo " "
 if [ "$nohup" = true ] ; then
 
     # Start bridge in background and collider here
-    nohup ros2 run ros1_bridge dynamic_bridge > "nohup_bridge.txt" 2>&1 & $sogm_command
+    nohup ros2 run ros1_bridge dynamic_bridge --bridge-all-2to1-topics > "nohup_bridge.txt" 2>&1 & $sogm_command
 
     # Start collider in background and bridge here 
     # nohup ros2 run deep_sogm collider > "nohup_sogm.txt" 2>&1 & ros2 run ros1_bridge dynamic_bridge
