@@ -717,7 +717,7 @@ class OnlineCollider(Node):
             #   > dynamic risk: blue to red
             #   > invisible for the rest of the map
             # Actually separate them in two different costmaps
-
+            # visu_SRM is the array that gets visualized and published
             visu_SRM = np.zeros((1, 1))
             if self.visu_mode == "v1":
                 visu_SRM = collision_preds[1:, :, :].astype(np.float32)
@@ -728,11 +728,16 @@ class OnlineCollider(Node):
                 visu_SRM[mask] += 128
 
             elif self.visu_mode == "v2":
+                # Loop over risk boundaries
                 for iso_i, iso in enumerate([220, 150]):
-
+                    # Isolate dynamic risk greater than current iso
                     dynamic_mask = collision_preds[1:, :, :] > iso
+                    # Apply mask to dynamic risk
                     dynamic_data = dynamic_mask.astype(np.float32) * np.expand_dims(np.arange(dynamic_mask.shape[0]), (1, 2))
+                    # Get max risk through time
                     dynamic_data = np.max(dynamic_data, axis=0)
+                    # If not the first risk boundary, apply erosion to only plot boundary
+                    # for nicer visualization
                     if iso_i > 0:
                         erode_mask = dynamic_data > 0
                         close_struct = np.ones((5, 5))
@@ -740,13 +745,16 @@ class OnlineCollider(Node):
                         erode_mask = ndimage.binary_closing(erode_mask, structure=close_struct, iterations=2)
                         erode_mask = ndimage.binary_erosion(erode_mask, structure=erode_struct)
                         dynamic_data[erode_mask] = 0
+                    # Update visu_SRM
                     visu_SRM = np.maximum(visu_SRM, dynamic_data)
-
+                # Normalize visu_SRM to [0, 1]
                 visu_SRM *= (1 / np.max(visu_SRM) + 1e-6)
+                # Scale visu_SRM to [0, 126]
                 visu_SRM *= 126
+                # Make sure visu_SRM is between 0 and 126, note int8 is between -128 and 127
                 visu_SRM = np.maximum(0, np.minimum(126, visu_SRM.astype(np.int8)))
-                mask = visu_SRM > 0
-                visu_SRM[mask] += 128
+                # Add 128 to visu_SRM to roll over to [-128, 127]
+                visu_SRM[visu_SRM > 0] += 128
 
             # Define message data
             #   > static risk: yellow to red
