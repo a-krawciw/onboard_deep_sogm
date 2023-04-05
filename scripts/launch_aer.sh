@@ -10,7 +10,7 @@ source "/opt/ros/foxy/setup.bash"
 source install/setup.bash
 
 # Open terminals or nohup
-nohup=true
+nohup=false
 
 # Launch command
 nbv_command="ros2 run publish_goal_cost nbv_goal_node"
@@ -23,11 +23,11 @@ echo "$ent_command"
 echo " "
 
 if [ "$nohup" = true ] ; then
-    #nohup $nbv_command
+    nohup $nbv_command
     nohup $ent_command
 else
-    xterm -bg black -fg lightgray -e $nbv_command
-    xterm -bg black -fg lightgray -e $ent_command
+    xterm -bg black -fg lightgray -T "NBV Node" -n "BV Node" -e $nbv_command &
+    xterm -bg black -fg lightgray -T "Entropy Node" -n "Entropy Node" -e $ent_command &
 
 fi
 
