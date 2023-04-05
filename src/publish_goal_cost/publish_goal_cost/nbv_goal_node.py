@@ -20,7 +20,6 @@ from nav_msgs.msg import Odometry
 class NBVNode(Node):
 
     def __init__(self):
-
         super().__init__('sogm_nbv')
         print("NBV Node Started")
 
@@ -60,7 +59,6 @@ class NBVNode(Node):
 
     def calc_entropy(self, msg: VoxGrid):
         self.sim_stamp = msg.header.stamp
-        print("Why me?")
         self.sogm = np.array(msg.data).reshape((msg.depth, msg.width, msg.height)) / 255.0
         if not self.base_meta_data:
             self.base_meta_data = MapMetaData()
@@ -68,7 +66,7 @@ class NBVNode(Node):
             self.base_meta_data.width = msg.width
             self.base_meta_data.resolution = msg.dl
 
-        #self.publish_cmap()
+        self.publish_cmap()
         self.publish_nbv_pose()
 
     def store_robot_pose(self, msg: Odometry):
@@ -77,7 +75,7 @@ class NBVNode(Node):
         
     def publish_nbv_pose(self):
         nbv_pose = PoseStamped()
-        nbv_pose.header.frame_id = 'world'
+        nbv_pose.header.frame_id = 'map'
         nbv_pose.header.stamp = self.sim_stamp
         nbv_pose.pose.position.x = self.odom_loc.position.x + 0.25
         nbv_pose.pose.position.y = self.odom_loc.position.y - 1.25
@@ -98,13 +96,15 @@ class NBVNode(Node):
             return
 
         outgoing_msg = OccupancyGrid()
+        outgoing_msg.header.frame_id = 'map'
         outgoing_msg.info = self.base_meta_data
         outgoing_msg.info.map_load_time = self.sim_stamp
         print(self.sim_stamp)
 
-        #outgoing_msg.info.origin = self.odom_loc
+        outgoing_msg.info.origin.position.x = -8.0
+        outgoing_msg.info.origin.position.y = -6.0
         cost_map = np.full((outgoing_msg.info.width, outgoing_msg.info.height), 0, dtype=int)
-        cost_map[:outgoing_msg.info.width//4, outgoing_msg.info.height//4:3*outgoing_msg.info.height//4] = 60
+        cost_map[:outgoing_msg.info.width//4, outgoing_msg.info.height//4:3*outgoing_msg.info.height//4] = 40
 
         outgoing_msg.data = [int(a) for a in cost_map.ravel()]
 
