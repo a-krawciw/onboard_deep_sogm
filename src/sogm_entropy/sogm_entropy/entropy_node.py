@@ -5,19 +5,29 @@ from rclpy.node import Node
 from vox_msgs.msg import VoxGrid
 from std_msgs.msg import Float64, Header
 from sensor_msgs.msg import Image
+from nav_msgs.msg import Odometry
 import numpy as np
 from scipy import ndimage
+from scipy.spatial.transform import Rotation as R
 
 
 class SOGMEntropyNode(Node):
     def __init__(self):
         super().__init__('sogm_entropy')
+        # Subscribers
         self.sogm_subscriber = self.create_subscription(
             VoxGrid,
             '/plan_costmap_3D',
             self.process_SOGM,
             10)
         
+        self.state_subscriber = self.create_subscription(
+            Odometry,
+            '/ground_truth/state',
+            self.update_pose,
+            10)
+        
+        # Publishers
         self.sogm_publisher = self.create_publisher(
             Float64,
             '/sogm_entropy',
@@ -29,8 +39,19 @@ class SOGMEntropyNode(Node):
             '/sogm_img',
             10
         )
+
+        # Initialize pose
+        self.pose = None
+        self.yaw = 0.0      # Yaw of robot in degrees
         print("SOGM Entropy Node Started")
 
+    def update_pose(self, msg):
+        self.pose = msg.pose.pose
+        # Convert quaternion to euler angles
+        q = self.pose.orientation
+        euler = R.from_quat([q.x, q.y, q.z, q.w]).as_euler('xyz', degrees=True)
+        print("Euler: {}".format(euler))
+        self.yaw = euler[2]
 
     def process_SOGM(self, msg: VoxGrid):
         print("Received SOGM message")
@@ -54,7 +75,7 @@ class SOGMEntropyNode(Node):
 
         # Downweight each layer by dt
         time_factor = 0.9
-        min_risk_val = 200
+        min_risk_val = 220
         for ii in range(sogm_3d_mod.shape[0]):
             # Set all values below the minimum risk value to 0
             sogm_2d_ii = sogm_3d_mod[ii, :, :]
@@ -66,7 +87,13 @@ class SOGMEntropyNode(Node):
         sogm_2d = np.max(sogm_3d_mod, axis=0)
 
         # Transpose to align with our world frame view
-        sogm_2d = sogm_2d.T
+        sogm_2d = sogm_2d
+
+        # Flip about x axis to align with world frame y axis
+        sogm_2d = np.flip(sogm_2d, axis=0)
+
+        # Rotate the array to align with robot frame
+        sogm_2d = ndimage.rotate(sogm_2d, -self.yaw, reshape=False)
 
         # Clip to 255 to be safe
         sogm_2d = np.clip(sogm_2d, 0, 255)
@@ -102,8 +129,18 @@ class SOGMEntropyNode(Node):
         #sogm2d_pub = np.zeros((20, 20), dtype=np.uint8)
         #sogm2d_pub[7:12, 7:12] = 255
 
+        # For debugging, let's generate a 20x20 array with the top right 5x5 cells being 255 and all others being 0
+        #sogm_2d = np.zeros((20, 20), dtype=np.uint8)
+        #sogm_2d[0:5, 15:20] = 255
+        #sogm_2d = ndimage.rotate(sogm_2d, 180.0, reshape=False)
+
         # Convert to uint8
         sogm2d_pub = sogm_2d.astype(np.uint8)
+
+        # The current sogm_2d is resolved in robot frame, with y up and x to the right
+        # For visualization purposes, let's point x upwards
+        sogm2d_pub = ndimage.rotate(sogm2d_pub, 90.0, reshape=False)
+
         # Add a 255 valued border around the array
         sogm2d_pub[0, :] = 255
         sogm2d_pub[-1, :] = 255
