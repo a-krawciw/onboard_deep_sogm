@@ -1,5 +1,7 @@
 import sys
 
+from .tf2_geo_msgs import do_transform_pose
+
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid, MapMetaData, Path
@@ -9,11 +11,12 @@ import numpy as np
 import copy
 
 
-from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
+from tf2_ros import TransformException, TransformStamped
 
 from nav_msgs.msg import Odometry
+
+from rclpy.duration import Duration
+from rclpy.time import Time
 
 
 
@@ -48,11 +51,6 @@ class NBVNode(Node):
             10
         )
 
-
-        #self.tf_buffer = Buffer()
-        #self.tf_listener = TransformListener(self.tf_buffer, self)
-
-
         self.base_meta_data = None
         self.odom_loc = Pose()
 
@@ -67,27 +65,43 @@ class NBVNode(Node):
             self.base_meta_data.resolution = msg.dl
 
         self.publish_cmap()
-        self.publish_nbv_pose()
 
-    def store_robot_pose(self, msg: Odometry):
-        
+    def store_robot_pose(self, msg: Odometry):       
         self.odom_loc = msg.pose.pose
+        self.T_r_m = TransformStamped()
+        self.T_r_m.header = msg.header
+        self.T_r_m.child_frame_id = 'base_link'
+        self.T_r_m.transform.translation.x = msg.pose.pose.position.x
+        self.T_r_m.transform.translation.y = msg.pose.pose.position.y
+        self.T_r_m.transform.translation.z = msg.pose.pose.position.z
+        self.T_r_m.transform.rotation = msg.pose.pose.orientation
+        self.sim_stamp = msg.header.stamp
+
+        self.publish_nbv_pose()
         
     def publish_nbv_pose(self):
         nbv_pose = PoseStamped()
-        nbv_pose.header.frame_id = 'map'
+        nbv_pose.header.frame_id = 'base_link'
         nbv_pose.header.stamp = self.sim_stamp
-        nbv_pose.pose.position.x = self.odom_loc.position.x + 0.25
-        nbv_pose.pose.position.y = self.odom_loc.position.y - 1.25
-
-        nbv_wrapped_path = Path()
-        nbv_wrapped_path.header = nbv_pose.header
-        nbv_wrapped_path.poses = [nbv_pose]
+        nbv_pose.pose.position.x = 0.5
+        nbv_pose.pose.position.y = 0.5
 
         print(self.sim_stamp)
 
+        try:
+            nbv_map = PoseStamped()
+            nbv_map.header.frame_id = 'map'
+            nbv_map.header.stamp = self.sim_stamp
+            nbv_map.pose = do_transform_pose(nbv_pose.pose, self.T_r_m)
+            nbv_wrapped_path = Path()
+            nbv_wrapped_path.header = nbv_map.header
+            nbv_wrapped_path.poses = [nbv_map]
 
-        self.nbv_via_point_pub.publish(nbv_wrapped_path)
+
+            self.nbv_via_point_pub.publish(nbv_wrapped_path)
+        except Exception as e:
+            print("error")
+            print(e)
 
         
 
@@ -116,8 +130,8 @@ class NBVNode(Node):
 def main(args=None):
     rclpy.init(args=args)
 
+    
     minimal_client = NBVNode()
-
     rclpy.spin(minimal_client)
 
     minimal_client.destroy_node()
