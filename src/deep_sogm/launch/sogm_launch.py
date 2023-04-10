@@ -7,9 +7,11 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
     return LaunchDescription([DeclareLaunchArgument(name='nav_without_sogm', default_value='false', description='Specify if we use SOGM for navigation'),
                               DeclareLaunchArgument(name='use_sim_time', default_value='false', description='Specify if we are in simulation or not'),
+                              DeclareLaunchArgument(name='sogm_noise_correction', default_value='false', description='Specify if we should use gt actor pose to remove predicted SOGM noise'),
                               DeclareLaunchArgument(name='model_path', default_value='', description='Specify the name of the trained model session.'),
                               LogInfo(msg=LaunchConfiguration('nav_without_sogm')),
                               LogInfo(msg=LaunchConfiguration('use_sim_time')),
+                              LogInfo(msg=LaunchConfiguration('sogm_noise_correction')),
                               LogInfo(msg=LaunchConfiguration('model_path')),
                               Node(package='deep_sogm',
                                    executable='collider',
@@ -18,5 +20,6 @@ def generate_launch_description():
                                    emulate_tty=True,
                                    parameters=[{'nav_without_sogm': LaunchConfiguration('nav_without_sogm'),
                                                 'use_sim_time': LaunchConfiguration('use_sim_time'),
+                                                'sogm_noise_correction': LaunchConfiguration('sogm_noise_correction'),
                                                 'model_path': LaunchConfiguration('model_path')}])
                               ])

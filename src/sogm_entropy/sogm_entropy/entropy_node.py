@@ -26,7 +26,7 @@ class SOGMEntropyNode(Node):
             '/ground_truth/state',
             self.update_pose,
             10)
-        
+
         # Publishers
         self.sogm_publisher = self.create_publisher(
             Float64,
@@ -52,6 +52,7 @@ class SOGMEntropyNode(Node):
         euler = R.from_quat([q.x, q.y, q.z, q.w]).as_euler('xyz', degrees=True)
         print("Euler: {}".format(euler))
         self.yaw = euler[2]
+        #self.yaw = 0.0
 
     def process_SOGM(self, msg: VoxGrid):
         print("Received SOGM message")
@@ -75,7 +76,7 @@ class SOGMEntropyNode(Node):
 
         # Downweight each layer by dt
         time_factor = 0.9
-        min_risk_val = 220
+        min_risk_val = 180
         for ii in range(sogm_3d_mod.shape[0]):
             # Set all values below the minimum risk value to 0
             sogm_2d_ii = sogm_3d_mod[ii, :, :]
@@ -86,10 +87,8 @@ class SOGMEntropyNode(Node):
         # Find the maximum value along the time axis
         sogm_2d = np.max(sogm_3d_mod, axis=0)
 
-        # Transpose to align with our world frame view
-        sogm_2d = sogm_2d
-
         # Flip about x axis to align with world frame y axis
+        # This is because 0,0 in matrix is top left whereas 0,0 in world frame is bottom left
         sogm_2d = np.flip(sogm_2d, axis=0)
 
         # Rotate the array to align with robot frame
@@ -159,6 +158,7 @@ class SOGMEntropyNode(Node):
 
         # Publish the image
         self.sogm_img_publisher.publish(img_msg)
+
 
 def main(args=None):
     rclpy.init(args=args)

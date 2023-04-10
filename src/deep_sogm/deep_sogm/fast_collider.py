@@ -30,6 +30,9 @@ from os.path import exists, join
 import sys
 from multiprocessing import Lock
 from numpy.core.numeric import False_
+from scipy import ndimage
+from gazebo_msgs.msg import ModelStates
+
 ENV_USER = os.getenv('USER')
 ENV_HOME = os.getenv('HOME')
 ENV_SIM = os.getenv('JACKAL_SIM_ROOT')
@@ -316,6 +319,18 @@ class OnlineCollider(Node):
             self.collision_pub = self.create_publisher(VoxGrid, '/plan_costmap_3D', 10)
             self.obstacle_pub = self.create_publisher(ObstacleArrayMsg, '/move_base/TebLocalPlannerROS/obstacles', 10)
 
+        # Init actor pose subscriber if SOGM noise correction is used
+        self.declare_parameter('sogm_noise_correction', False)
+        self.sogm_noise_correction = self.get_parameter('sogm_noise_correction').get_parameter_value().bool_value
+        print('sogm_noise_correction: ', self.sogm_noise_correction)
+        if self.sogm_noise_correction:
+            self.actor_poses = []
+            self.model_state_subscriber = self.create_subscription(
+                ModelStates,
+                '/gazebo/model_states',
+                self.update_model_state,
+                10)
+
         # Init other visu  publisher
         self.pointcloud_pub = self.create_publisher(PointCloud2, '/classified_points', 10)
         self.visu_pub = self.create_publisher(OccupancyGrid, '/dynamic_visu', 10)
@@ -337,6 +352,90 @@ class OnlineCollider(Node):
         self.last_layer_i = -1
 
         return
+
+    def update_model_state(self, msg):
+        # Reset actor poses list
+        self.actor_poses = []
+        # Extract actor names from the sim
+        actor_names = [name for name in msg.name if name.startswith("actor_flow_follower_")]
+        # Loop over all actors and save their pose
+        for actor_name in actor_names:
+            actor_idx = msg.name.index(actor_name)
+            actor_pose = msg.pose[actor_idx]
+            self.actor_poses.append((actor_pose.position.x, actor_pose.position.y))
+
+    def create_circle_of_1s(self, center, radius, matrix_shape):
+        matrix = np.zeros(matrix_shape)
+        for i in range(matrix_shape[0]):
+            for j in range(matrix_shape[1]):
+                distance = np.sqrt((i - center[0])**2 + (j - center[1])**2)
+                if distance <= radius:
+                    matrix[i, j] = 1
+        return matrix
+
+    def sogm_filter_noise(self, diffused_risk, p0):
+        # Transform actor poses to the diffused risk frame
+        actors_in_range = []
+        origin0 = p0 - self.config.radius_2D / np.sqrt(2)
+        actor_mask = np.zeros((diffused_risk.shape[1], diffused_risk.shape[2]))
+        for pose in self.actor_poses:
+            actor_x_idx = int((pose[1] - origin0[1])/self.config.dl_2D)
+            actor_y_idx = int((pose[0] - origin0[0])/self.config.dl_2D)
+            
+            # Make sure actor isnt out of bounds
+            if actor_x_idx >= 0 and actor_x_idx < diffused_risk.shape[1] and actor_y_idx >= 0 and actor_y_idx < diffused_risk.shape[2]:
+                # Set circle of pixels around actor to 1, so that everything outside is ignored
+                radius = 12
+                actor_mask = actor_mask + self.create_circle_of_1s((actor_x_idx, actor_y_idx), radius, actor_mask.shape)
+                #actor_mask[actor_x_idx-10:actor_x_idx+10, actor_y_idx-10:actor_y_idx+10] = 1
+                actors_in_range.append((actor_x_idx, actor_y_idx))
+
+        # Now, find predicted SOGM blobs
+        # First, isolate the dynamic risk layers
+        dyn_risk = diffused_risk[1:, :, :]
+        # Collapse the time dimension
+        dyn_risk_2d = np.max(dyn_risk, axis=0)
+        # Ignore all risk values below threshold as noise
+        dyn_risk_2d[dyn_risk_2d < 140] = 0
+        # Apply actor mask
+        dyn_risk_2d = np.multiply(dyn_risk_2d, actor_mask)
+    
+        # Find non-zero risk "blobs"
+        blobs, num_blobs = ndimage.label(dyn_risk_2d)#, structure=np.ones((3, 3)))
+
+        #print("num_blobs: ", num_blobs)
+        #print("actors_in_range: ", actors_in_range)
+
+        # Next, check which blobs contain an actor, remove the others
+        # Find unique labels of blobs that contain actor indices
+        blob_labels = set()
+        for actor in actors_in_range:
+            # Check if actor coordinate is in a blob
+            actor_blob = blobs[actor[0], actor[1]]
+            if actor_blob != 0:
+                blob_labels.add(actor_blob)
+
+        # Loop through blob labels and set corresponding elements in dynamic_mask to 1
+        # Create mask initially with all non-zero risk values being passed through
+        dynamic_mask = np.zeros(dyn_risk_2d.shape, dtype=bool)
+        for label in blob_labels:
+            dynamic_mask[blobs == label] = 1
+
+        # Debugging, create 10x10 pixel blob about actor
+        #a_blobs = np.zeros((diffused_risk.shape[1], diffused_risk.shape[2]))
+        #for actor in actors_in_range:
+        #    a_blobs[actor[1]-5:actor[1]+5, actor[0]-5:actor[0]+5] = 255
+
+        # Finally, apply the dynamic_mask to all time slices of the diffused risk
+        for t in range(1, diffused_risk.shape[0]):
+            # Debugging, set all non-zero blob values to 255
+            #blobs[blobs > 0] = 255
+            #diffused_risk[t, :, :] = a_blobs
+            diffused_risk[t, :, :] = np.multiply(diffused_risk[t, :, :], dynamic_mask)
+
+        return diffused_risk
+
+
 
     def diffusing_convolution(self, obstacle_range, dl, norm_p, dim1D=False):
         
@@ -938,7 +1037,10 @@ class OnlineCollider(Node):
                 # Forward pass
                 outputs_3D, preds_init, preds_future = self.net(batch, self.config)
                 torch.cuda.synchronize(self.device)
-                
+
+                # Use something like the following to filter through true poses vs not
+                # rosservice call gazebo/get_model_state '{model_name: actor_flow_follower_31}'
+
                 t += [time.time()]
 
                 ######################
@@ -951,6 +1053,10 @@ class OnlineCollider(Node):
 
                 # Get the diffused risk
                 diffused_risk, obst_pos, static_mask = self.get_diffused_risk(collision_preds)
+
+                # Filter diffused risk from noisy predictions
+                if self.sogm_noise_correction:
+                    diffused_risk = self.sogm_filter_noise(diffused_risk, batch.p0)
 
                 # Convert stamp to float
                 sec1 = batch.t0.sec
@@ -992,7 +1098,7 @@ class OnlineCollider(Node):
                 print(35 * ' ', 35 * ' ', 'Publishing {:.3f} with a delay of {:.3f}s'.format(stamp_sec, now_sec - stamp_sec))
                 self.publish_collisions(diffused_risk, stamp_sec, batch.p0, batch.q0)
 
-                # This call dos not publish but just updates the data. Pubications are done in aother thread at a much higher rate
+                # This call dos not publish but just updates the data. Pubications are done in another thread at a much higher rate
                 self.publish_collisions_visu(diffused_risk, static_mask, batch.t0, batch.p0)
                 if not self.simu:
                     self.publish_collisions_visu(None, None, None, None)
