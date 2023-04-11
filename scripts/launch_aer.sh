@@ -26,8 +26,8 @@ if [ "$nohup" = true ] ; then
     nohup $nbv_command
     nohup $ent_command
 else
-    xterm -bg black -fg lightgray -T "NBV Node" -n "BV Node" -e $nbv_command &
-    xterm -bg black -fg lightgray -T "Entropy Node" -n "Entropy Node" -e $ent_command &
+    xterm -bg black -fg lightgray -hold -T "NBV Node" -n "BV Node" -e $nbv_command &
+    xterm -bg black -fg lightgray -hold -T "Entropy Node" -n "Entropy Node" -e $ent_command &
 
 fi
 

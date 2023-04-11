@@ -142,10 +142,10 @@ class SOGMEntropyNode(Node):
         sogm2d_pub = ndimage.rotate(sogm2d_pub, 90.0, reshape=False)
 
         # Add a 255 valued border around the array
-        sogm2d_pub[0, :] = 255
-        sogm2d_pub[-1, :] = 255
-        sogm2d_pub[:, 0] = 255
-        sogm2d_pub[:, -1] = 255
+        # sogm2d_pub[0, :] = 255
+        # sogm2d_pub[-1, :] = 255
+        # sogm2d_pub[:, 0] = 255
+        # sogm2d_pub[:, -1] = 255
 
         # Create the Image message
         img_msg = Image()
@@ -154,7 +154,7 @@ class SOGMEntropyNode(Node):
         img_msg.width = sogm2d_pub.shape[1]
         img_msg.encoding = "mono8"
         img_msg.is_bigendian = 0
-        #img_msg.step = sogm2d_pub.shape[1] # 1 byte per pixel
+        img_msg.step = sogm2d_pub.shape[1] # 1 byte per pixel
         img_msg.data = sogm2d_pub.tostring()
 
         # Publish the image
