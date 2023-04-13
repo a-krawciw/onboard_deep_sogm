@@ -3,7 +3,7 @@ import sys
 import rclpy
 from rclpy.node import Node
 from vox_msgs.msg import VoxGrid
-from std_msgs.msg import Float64, Header
+from std_msgs.msg import Float32, Header
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
 import numpy as np
@@ -29,7 +29,7 @@ class SOGMEntropyNode(Node):
 
         # Publishers
         self.sogm_publisher = self.create_publisher(
-            Float64,
+            Float32,
             '/sogm_entropy',
             10
         )
@@ -50,7 +50,6 @@ class SOGMEntropyNode(Node):
         # Convert quaternion to euler angles
         q = self.pose.orientation
         euler = R.from_quat([q.x, q.y, q.z, q.w]).as_euler('xyz', degrees=True)
-        print("Euler: {}".format(euler))
         self.yaw = euler[2]
         #self.yaw = 0.0
 
@@ -107,7 +106,7 @@ class SOGMEntropyNode(Node):
         #sogm_entropy = np.sum(np.mean(entropy, axis=(1, 2)))
 
         # Convert to probabilities
-        sogm_2d = sogm_2d / 255.0
+        sogm_2d = sogm_2d / 255.0 + 1e-6
 
         # Compute the marginal distributions
         row_probs = np.sum(sogm_2d, axis=1)
@@ -118,8 +117,9 @@ class SOGMEntropyNode(Node):
         # Compute the joint entropy by reshaping the matrix into a 1D array
         joint_entropy = -np.sum((sogm_2d * np.log2(sogm_2d)).flatten())
 
+        print(joint_entropy)
         # Publish the entropy
-        pub_msg = Float64()
+        pub_msg = Float32()
         pub_msg.data = joint_entropy
         self.sogm_publisher.publish(pub_msg)
 

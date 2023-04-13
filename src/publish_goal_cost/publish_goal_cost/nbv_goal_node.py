@@ -77,9 +77,10 @@ class NBVNode(Node):
         self.policy_net = DQN(SOGM_DIM, N_ACTIONS)
 
         try:
-            with open(os.path.join(ENV_SIM, "onboard_deep_sogm", "src", "rl_models", "1516_policy_net.pt")) as model_file:
+            with open(os.path.join(ENV_SIM, "onboard_deep_sogm", "rl_models", "1516_policy_net.pt"), 'rb') as model_file:
                 model_params = torch.load(model_file)
                 self.policy_net.load_state_dict(model_params)
+                print("Restored model weights")
         except FileNotFoundError as e:
             print(e)
             print("No model loaded. Using random weights")
@@ -118,10 +119,8 @@ class NBVNode(Node):
         nbv_pose = PoseStamped()
         nbv_pose.header.frame_id = 'base_link'
         nbv_pose.header.stamp = self.sim_stamp
-        nbv_pose.pose.position.x = 0.5
-        nbv_pose.pose.position.y = 0.5 * (action - 1)
-
-        print(self.sim_stamp)
+        nbv_pose.pose.position.x = 1.0
+        nbv_pose.pose.position.y = 0.75 * (action - 1)
 
         try:
             nbv_map = PoseStamped()
