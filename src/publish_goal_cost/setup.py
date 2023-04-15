@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'nbv_goal_node = publish_goal_cost.nbv_goal_node:main'
+            'nbv_goal_node = publish_goal_cost.nbv_goal_node:main',
+            'nbv_training = publish_goal_cost.nbv_training_node:main'
         ],
     },
 )

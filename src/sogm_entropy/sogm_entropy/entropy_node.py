@@ -106,7 +106,7 @@ class SOGMEntropyNode(Node):
         #sogm_entropy = np.sum(np.mean(entropy, axis=(1, 2)))
 
         # Convert to probabilities
-        sogm_2d = sogm_2d / 255.0 + 1e-6
+        sogm_2d = sogm_2d / 255.0
 
         # Compute the marginal distributions
         row_probs = np.sum(sogm_2d, axis=1)
@@ -114,8 +114,14 @@ class SOGMEntropyNode(Node):
         # Compute the row and column entropies separately
         row_entropy = -np.sum(row_probs * np.log2(row_probs))
         col_entropy = -np.sum(col_probs * np.log2(col_probs))
+
         # Compute the joint entropy by reshaping the matrix into a 1D array
-        joint_entropy = -np.sum((sogm_2d * np.log2(sogm_2d) + (1 - sogm_2d) * np.log2(1 - sogm_2d)).flatten())
+        entropy = -sogm_2d*np.log2(sogm_2d) - (1-sogm_2d)*np.log2(1-sogm_2d)
+        
+        #Avoid nan errors caused by the log of 0
+        entropy[sogm_2d == 0] = 0
+        entropy[sogm_2d == 1] = 0
+        joint_entropy = -np.sum(entropy.flatten())
 
         print(joint_entropy)
         # Publish the entropy

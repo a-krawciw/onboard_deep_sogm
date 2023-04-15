@@ -1,3 +1,5 @@
+from collections import  namedtuple
+import random
 import torch
 import torch.nn as nn
 
@@ -32,3 +34,5 @@ class DQN(nn.Module):
         x = torch.relu(self.fc1(x))
         x = self.fc2(x)
         return x
+
+
