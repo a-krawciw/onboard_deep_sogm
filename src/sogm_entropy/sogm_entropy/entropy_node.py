@@ -115,7 +115,7 @@ class SOGMEntropyNode(Node):
         row_entropy = -np.sum(row_probs * np.log2(row_probs))
         col_entropy = -np.sum(col_probs * np.log2(col_probs))
         # Compute the joint entropy by reshaping the matrix into a 1D array
-        joint_entropy = -np.sum((sogm_2d * np.log2(sogm_2d)).flatten())
+        joint_entropy = -np.sum((sogm_2d * np.log2(sogm_2d) + (1 - sogm_2d) * np.log2(1 - sogm_2d)).flatten())
 
         print(joint_entropy)
         # Publish the entropy

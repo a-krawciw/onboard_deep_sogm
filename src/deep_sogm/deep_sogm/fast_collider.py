@@ -940,7 +940,7 @@ class OnlineCollider(Node):
 
             msg.obstacles.append(obstacle_msg)
 
-        self.obstacle_pub.publish(msg)
+        #self.obstacle_pub.publish(msg)
 
         return
 

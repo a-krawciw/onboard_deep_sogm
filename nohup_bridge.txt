@@ -1,0 +1,59 @@
+[INFO] [1681497143.422155746] [ros_bridge]: Passing message from ROS 1 nav_msgs/Odometry to ROS 2 nav_msgs/msg/Odometry (showing msg only once per type)
+[INFO] [1681497143.422647565] [ros_bridge]: Passing message from ROS 2 rcl_interfaces/msg/Log to ROS 1 rosgraph_msgs/Log (showing msg only once per type)
+[INFO] [1681497144.951716105] [ros_bridge]: Passing message from ROS 1 rosgraph_msgs/Clock to ROS 2 rosgraph_msgs/msg/Clock (showing msg only once per type)
+[INFO] [1681497152.036543868] [ros_bridge]: Passing message from ROS 1 sensor_msgs/PointCloud2 to ROS 2 sensor_msgs/msg/PointCloud2 (showing msg only once per type)
+[INFO] [1681497152.041627619] [ros_bridge]: Passing message from ROS 1 tf2_msgs/TFMessage to ROS 2 tf2_msgs/msg/TFMessage (showing msg only once per type)
+[INFO] [1681497152.119531175] [ros_bridge]: Passing message from ROS 1 gazebo_msgs/ModelStates to ROS 2 gazebo_msgs/msg/ModelStates (showing msg only once per type)
+[INFO] [1681497155.770094674] [ros_bridge]: Passing message from ROS 2 vox_msgs/msg/VoxGrid to ROS 1 vox_msgs/VoxGrid (showing msg only once per type)
+[INFO] [1681497155.784649692] [ros_bridge]: Passing message from ROS 2 std_msgs/msg/Float32 to ROS 1 std_msgs/Float32 (showing msg only once per type)
+[INFO] [1681497155.788851707] [ros_bridge]: Passing message from ROS 2 sensor_msgs/msg/Image to ROS 1 sensor_msgs/Image (showing msg only once per type)
+[INFO] [1681497155.827056830] [ros_bridge]: Passing message from ROS 2 nav_msgs/msg/OccupancyGrid to ROS 1 nav_msgs/OccupancyGrid (showing msg only once per type)
+[INFO] [1681497155.867973962] [ros_bridge]: Passing message from ROS 2 nav_msgs/msg/Path to ROS 1 nav_msgs/Path (showing msg only once per type)
+[INFO] [1681497155.897928994] [ros_bridge]: Passing message from ROS 2 sensor_msgs/msg/PointCloud2 to ROS 1 sensor_msgs/PointCloud2 (showing msg only once per type)
+[33m[ WARN] [1681497323.075393889, 28.935000000]: Shutdown request received.[0m
+[33m[ WARN] [1681497323.079472063, 28.935000000]: Reason given for shutdown: [user request][0m
+Created 2 to 1 bridge for service /ekf_localization/enable
+Created 2 to 1 bridge for service /gazebo/clear_body_wrenches
+Created 2 to 1 bridge for service /gazebo/clear_joint_forces
+Created 2 to 1 bridge for service /gazebo/delete_light
+Created 2 to 1 bridge for service /gazebo/delete_model
+Created 2 to 1 bridge for service /gazebo/get_joint_properties
+Created 2 to 1 bridge for service /gazebo/get_light_properties
+Created 2 to 1 bridge for service /gazebo/get_link_properties
+Created 2 to 1 bridge for service /gazebo/get_link_state
+Created 2 to 1 bridge for service /gazebo/get_model_properties
+Created 2 to 1 bridge for service /gazebo/get_model_state
+Created 2 to 1 bridge for service /gazebo/get_physics_properties
+Created 2 to 1 bridge for service /gazebo/get_world_properties
+Created 2 to 1 bridge for service /gazebo/pause_physics
+Created 2 to 1 bridge for service /gazebo/reset_simulation
+Created 2 to 1 bridge for service /gazebo/reset_world
+Created 2 to 1 bridge for service /gazebo/set_joint_properties
+Created 2 to 1 bridge for service /gazebo/set_link_properties
+Created 2 to 1 bridge for service /gazebo/set_link_state
+Created 2 to 1 bridge for service /gazebo/set_model_configuration
+Created 2 to 1 bridge for service /gazebo/set_model_state
+Created 2 to 1 bridge for service /gazebo/set_physics_properties
+Created 2 to 1 bridge for service /gazebo/spawn_sdf_model
+Created 2 to 1 bridge for service /gazebo/spawn_urdf_model
+Created 2 to 1 bridge for service /gazebo/unpause_physics
+Created 2 to 1 bridge for service /imu/data/calibrate
+Created 2 to 1 bridge for service /rviz/reload_shaders
+created 1to2 bridge for topic '/ground_truth/state' with ROS 1 type 'nav_msgs/Odometry' and ROS 2 type 'nav_msgs/msg/Odometry'
+created 2to1 bridge for topic '/rosout' with ROS 2 type 'rcl_interfaces/msg/Log' and ROS 1 type 'rosgraph_msgs/Log'
+created 2to1 bridge for topic '/sogm_entropy' with ROS 2 type 'std_msgs/msg/Float32' and ROS 1 type ''
+created 2to1 bridge for topic '/sogm_img' with ROS 2 type 'sensor_msgs/msg/Image' and ROS 1 type ''
+created 1to2 bridge for topic '/clock' with ROS 1 type 'rosgraph_msgs/Clock' and ROS 2 type 'rosgraph_msgs/msg/Clock'
+created 2to1 bridge for topic '/move_base/TebLocalPlannerROS/via_points' with ROS 2 type 'nav_msgs/msg/Path' and ROS 1 type ''
+created 1to2 bridge for topic '/gazebo/model_states' with ROS 1 type 'gazebo_msgs/ModelStates' and ROS 2 type 'gazebo_msgs/msg/ModelStates'
+created 1to2 bridge for topic '/sub_points' with ROS 1 type 'sensor_msgs/PointCloud2' and ROS 2 type 'sensor_msgs/msg/PointCloud2'
+created 1to2 bridge for topic '/tf' with ROS 1 type 'tf2_msgs/TFMessage' and ROS 2 type 'tf2_msgs/msg/TFMessage'
+created 1to2 bridge for topic '/tf_static' with ROS 1 type 'tf2_msgs/TFMessage' and ROS 2 type 'tf2_msgs/msg/TFMessage'
+created 2to1 bridge for topic '/classified_points' with ROS 2 type 'sensor_msgs/msg/PointCloud2' and ROS 1 type ''
+created 2to1 bridge for topic '/dynamic_visu' with ROS 2 type 'nav_msgs/msg/OccupancyGrid' and ROS 1 type ''
+created 2to1 bridge for topic '/move_base/TebLocalPlannerROS/obstacles' with ROS 2 type 'costmap_converter_msgs/msg/ObstacleArrayMsg' and ROS 1 type 'costmap_converter/ObstacleArrayMsg'
+created 2to1 bridge for topic '/plan_costmap_3D' with ROS 2 type 'vox_msgs/msg/VoxGrid' and ROS 1 type ''
+created 2to1 bridge for topic '/static_visu' with ROS 2 type 'nav_msgs/msg/OccupancyGrid' and ROS 1 type ''
+Created 2 to 1 bridge for service /move_base/NavfnROS/make_plan
+Created 2 to 1 bridge for service /move_base/clear_costmaps
+Created 2 to 1 bridge for service /move_base/make_plan
